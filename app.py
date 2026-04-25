@@ -18,7 +18,10 @@ app.secret_key = os.getenv('SECRET_KEY', 'pnu_blind26_secret_key')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
+if db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 보안: 파일 업로드 5MB 제한
 
