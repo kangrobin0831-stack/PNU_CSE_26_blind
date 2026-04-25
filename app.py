@@ -723,8 +723,10 @@ def admin_kick_user(user_id):
             except Exception as e:
                 app.logger.warning(f"Failed to remove user image: {e}")
 
-    # 게시글 첨부 이미지도 삭제해야 하지만 cascade delete는 DB만 지우므로 파일은 수동으로 지워야 함
+    # 게시글 첨부 이미지 및 관련 신고/추천 파기
     for post in user.posts:
+        Recommendation.query.filter_by(post_id=post.id).delete()
+        Report.query.filter_by(post_id=post.id).delete()
         if post.image_path:
             p_img_path = os.path.join(POST_IMAGE_FOLDER, post.image_path)
             if os.path.exists(p_img_path):
@@ -732,6 +734,14 @@ def admin_kick_user(user_id):
                     os.remove(p_img_path)
                 except Exception as e:
                     app.logger.warning(f"Failed to remove post image: {e}")
+
+    # 사용자가 쓴 댓글에 달린 신고 파기
+    for comment in user.comments:
+        Report.query.filter_by(comment_id=comment.id).delete()
+
+    # 사용자가 누른 신고 및 추천 파기
+    Report.query.filter_by(user_id=user.id).delete()
+    Recommendation.query.filter_by(user_id=user.id).delete()
 
     db.session.delete(user)
     db.session.commit()
