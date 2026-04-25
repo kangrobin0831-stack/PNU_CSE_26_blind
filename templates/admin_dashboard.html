@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="mb-5">
+            <h2 class="fw-bold"><i class="fa-solid fa-shield-halved me-2"></i>관리자 대시보드</h2>
+            <p class="text-muted">PNU CSE 26' BLIND 커뮤니티 관리 센터</p>
+        </div>
+
+        <!-- 승인 대기자 목록 -->
+        <div class="card border-0 shadow-lg mb-5">
+            <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0" style="color: var(--dept-green);">
+                    <i class="fa-solid fa-user-clock me-2"></i>가입 승인 대기 ({{ pending_users|length }}명)
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                {% if not pending_users %}
+                <p class="text-muted text-center py-3">현재 승인 대기 중인 사용자가 없습니다.</p>
+                {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>아이디</th>
+                                <th>닉네임</th>
+                                <th>학번</th>
+                                <th>가입일</th>
+                                <th>인증 이미지</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in pending_users %}
+                            <tr>
+                                <td class="fw-bold">{{ u.username }}</td>
+                                <td>{{ u.nickname }}</td>
+                                <td><code>{{ u.student_id }}</code></td>
+                                <td><small class="text-muted">{{ u.created_at.strftime('%m-%d %H:%M') }}</small></td>
+                                <td>
+                                    {% if u.verification_image %}
+                                    <a href="{{ url_for('static', filename='uploads/' + u.verification_image) }}" target="_blank">
+                                        <img src="{{ url_for('static', filename='uploads/' + u.verification_image) }}"
+                                             alt="인증이미지"
+                                             style="height: 60px; width: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
+                                    </a>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">미제출</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <form action="{{ url_for('admin_approve_user', user_id=u.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-success fw-bold">
+                                                <i class="fa-solid fa-check me-1"></i>승인
+                                            </button>
+                                        </form>
+                                        <form action="{{ url_for('admin_reject_user', user_id=u.id) }}" method="POST"
+                                              onsubmit="return confirm('반려하면 해당 사용자 정보와 인증 이미지가 완전히 삭제됩니다. 계속하시겠습니까?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-danger fw-bold">
+                                                <i class="fa-solid fa-xmark me-1"></i>반려
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 요약 통계 -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 text-center bg-white admin-stat-card">
+                    <div class="text-primary mb-2"><i class="fa-solid fa-users fa-2x"></i></div>
+                    <h3 class="fw-bold mb-0">{{ user_count }}</h3>
+                    <small class="text-muted">전체 회원 수</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 text-center bg-white admin-stat-card">
+                    <div class="text-success mb-2"><i class="fa-solid fa-file-pen fa-2x"></i></div>
+                    <h3 class="fw-bold mb-0">{{ today_posts }}</h3>
+                    <small class="text-muted">오늘 새 글</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm p-4 text-center bg-white admin-stat-card">
+                    <div class="text-danger mb-2"><i class="fa-solid fa-land-mine-on fa-2x"></i></div>
+                    <h3 class="fw-bold mb-0">{{ reported_posts|length + reported_comments|length }}</h3>
+                    <small class="text-muted">미확인 신고 수</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 신고된 게시글 관리 -->
+        <div class="card border-0 shadow-lg mb-5">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-danger">🚨 신고된 게시글 목록</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>제목</th>
+                                <th>카테고리</th>
+                                <th>신고수</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for post in reported_posts %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('view', post_id=post.id) }}" target="_blank" class="text-dark fw-bold text-decoration-none">
+                                        {{ post.title }}
+                                    </a>
+                                </td>
+                                <td><span class="badge bg-secondary">{{ post.category }}</span></td>
+                                <td><span class="text-danger fw-bold">{{ post.report_count }}</span></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <form action="{{ url_for('admin_reset_post_report', post_id=post.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">초기화</button>
+                                        </form>
+                                        <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not reported_posts %}
+                            <tr><td colspan="4" class="text-center py-4 text-muted">신고된 게시글이 없습니다.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 신고된 댓글 관리 -->
+        <div class="card border-0 shadow-lg mb-5">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h5 class="fw-bold mb-0 text-warning">💬 신고된 댓글 목록</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>내용</th>
+                                <th>신고수</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comment in reported_comments %}
+                            <tr>
+                                <td class="text-truncate" style="max-width: 300px;">{{ comment.content }}</td>
+                                <td><span class="text-danger fw-bold">{{ comment.report_count }}</span></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <form action="{{ url_for('admin_reset_comment_report', comment_id=comment.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">초기화</button>
+                                        </form>
+                                        <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">삭제</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not reported_comments %}
+                            <tr><td colspan="3" class="text-center py-4 text-muted">신고된 댓글이 없습니다.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

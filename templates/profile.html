@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- 상단 프로필 요약 카드 -->
+        <div class="card shadow-lg border-0 mb-4 overflow-hidden">
+            <div class="card-body p-5 text-center bg-white">
+                <div class="mb-4 d-inline-block p-4 rounded-circle bg-light shadow-inner">
+                    <i class="fa-solid fa-user-shield fa-4x" style="color: var(--dept-green);"></i>
+                </div>
+                <h2 class="fw-bold mb-1">{{ user.nickname }}</h2>
+                <p class="text-muted mb-0">{{ user.username }} ({{ user.student_id }})</p>
+                <div class="mt-3">
+                    <span class="badge rounded-pill bg-light text-dark px-3 py-2 border">작성글 {{ my_posts|length }}</span>
+                    <span class="badge rounded-pill bg-light text-dark px-3 py-2 border ms-2">댓글 {{ my_comments|length }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 정보 수정 카드 -->
+        <div class="card shadow-lg border-0 mb-5 profile-card">
+            <div class="card-header bg-white border-0 pt-5 px-5">
+                <h4 class="fw-bold mb-0"><i class="fa-solid fa-gear me-2"></i>개인정보 수정</h4>
+                <p class="text-muted small mt-2">안전한 서비스 이용을 위해 정보를 최신으로 유지해 주세요.</p>
+            </div>
+            <div class="card-body p-5 pt-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">아이디</label>
+                            <input type="text" class="form-control p-3 bg-light border-0" value="{{ user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">닉네임</label>
+                            <input type="text" name="nickname" class="form-control p-3 bg-light border-0" value="{{ user.nickname }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">학번 (9자리)</label>
+                            <input type="text" class="form-control p-3 bg-light border-0" value="{{ user.student_id }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">이메일</label>
+                            <input type="email" name="email" class="form-control p-3 bg-light border-0" value="{{ user.email }}" required>
+                        </div>
+                    </div>
+
+                    <hr class="my-5 opacity-10">
+
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-key me-2"></i>비밀번호 변경</h5>
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">새 비밀번호</label>
+                            <input type="password" name="new_password" class="form-control p-3 bg-light border-0" placeholder="변경할 경우에만 입력">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">새 비밀번호 확인</label>
+                            <input type="password" name="new_password_confirm" class="form-control p-3 bg-light border-0" placeholder="다시 한번 입력">
+                        </div>
+                    </div>
+
+                    <!-- 재인증 섹션 (Security) -->
+                    <div class="p-4 rounded-4 border-warning bg-light border border-2 mb-4">
+                        <label class="form-label fw-bold text-danger"><i class="fa-solid fa-lock me-2"></i>현재 비밀번호 확인 (본인 재인증 필수)</label>
+                        <input type="password" name="current_password" class="form-control p-3 border-0 shadow-sm" placeholder="수정하려면 현재 비밀번호를 입력하세요" required>
+                        <small class="text-muted mt-2 d-block">세션 하이재킹 방지를 위해 모든 정보 수정 시 재인증이 필요합니다.</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold rounded-pill shadow-sm">수정 내용 저장하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 활동 내역 섹션 -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-bold mb-0"><i class="fa-solid fa-list me-2"></i>내가 쓴 글</h5>
+                    </div>
+                    <div class="card-body p-4 pt-2">
+                        {% if my_posts %}
+                        <div class="list-group list-group-flush">
+                            {% for post in my_posts[:5] %}
+                            <a href="{{ url_for('view', post_id=post.id) }}" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-truncate" style="max-width: 70%;">{{ post.title }}</span>
+                                    <small class="text-muted">{{ post.created_at.strftime('%m-%d') }}</small>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted py-4 text-center">작성한 글이 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h5 class="fw-bold mb-0"><i class="fa-solid fa-comment-dots me-2"></i>내가 쓴 댓글</h5>
+                    </div>
+                    <div class="card-body p-4 pt-2">
+                        {% if my_comments %}
+                        <div class="list-group list-group-flush">
+                            {% for comment in my_comments[:5] %}
+                            <a href="{{ url_for('view', post_id=comment.post_id) }}" class="list-group-item list-group-item-action border-0 px-0 py-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-truncate" style="max-width: 70%;">{{ comment.content }}</span>
+                                    <small class="text-muted">{{ comment.created_at.strftime('%m-%d') }}</small>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted py-4 text-center">작성한 댓글이 없습니다.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 회원 탈퇴 섹션 -->
+        <div class="card border-0 bg-danger bg-opacity-10 mb-5 rounded-4">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold text-danger mb-1">회원 탈퇴</h6>
+                    <p class="text-muted small mb-0">탈퇴 시 모든 정보와 작성한 글/댓글이 즉시 삭제되며 복구할 수 없습니다.</p>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm px-4 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                    탈퇴하기
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 회원 탈퇴 모달 -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-5">
+                <i class="fa-solid fa-user-slash text-danger fa-4x mb-4 opacity-50"></i>
+                <h3 class="fw-bold mb-3">정말 탈퇴하시겠습니까?</h3>
+                <p class="text-muted mb-5 px-4">작성하신 모든 데이터가 영구 삭제됩니다.<br>마지막 확인을 위해 비밀번호를 입력해 주세요.</p>
+                
+                <form action="{{ url_for('delete_account') }}" method="POST" class="px-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-4">
+                        <input type="password" name="password" class="form-control p-3 text-center rounded-pill border-danger" placeholder="비밀번호 입력" required>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-light flex-grow-1 py-2 rounded-pill fw-bold" data-bs-dismiss="modal">취소</button>
+                        <button type="submit" class="btn btn-danger flex-grow-1 py-2 rounded-pill fw-bold shadow-sm">탈퇴 확인</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

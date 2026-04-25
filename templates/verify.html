@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-lg p-5">
+
+            <!-- 헤더 -->
+            <div class="text-center mb-4">
+                <div class="mb-3" style="font-size: 3rem;">📋</div>
+                <h2 class="fw-bold mb-1">학생 인증</h2>
+                <p class="text-muted">스마트캠퍼스 또는 학생증 캡처본을 제출해 주세요.<br>과대 확인 후 가입이 승인됩니다.</p>
+            </div>
+
+            <!-- 안내 박스 -->
+            <div class="alert border-0 rounded-3 mb-4 py-3 px-4" style="background: #f7fffb; border-left: 4px solid var(--dept-green) !important;">
+                <ul class="mb-0 ps-3 small text-muted">
+                    <li>이름·학번이 보이는 스마트캠퍼스 캡처 또는 학생증 사진</li>
+                    <li>허용 형식: <strong>JPG, JPEG, PNG</strong> (최대 5MB)</li>
+                    <li>개인정보 보호를 위해 인증 완료 후 이미지는 즉시 파기됩니다.</li>
+                </ul>
+            </div>
+
+            <!-- 업로드 폼 -->
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-4">
+                    <label for="verification_image" class="form-label fw-bold">
+                        <i class="fa-solid fa-image me-2"></i>인증 이미지 선택
+                    </label>
+                    <input type="file"
+                           id="verification_image"
+                           name="verification_image"
+                           class="form-control p-3 bg-light border-0 rounded-3"
+                           accept=".jpg,.jpeg,.png"
+                           required>
+                    <div class="form-text text-muted mt-1">PNG, JPG, JPEG 형식만 가능합니다.</div>
+                </div>
+
+                <!-- 미리보기 영역 -->
+                <div id="preview-area" class="mb-4 d-none">
+                    <label class="form-label fw-bold">미리보기</label>
+                    <img id="preview-img"
+                         src="#"
+                         alt="미리보기"
+                         class="img-fluid rounded-3 border shadow-sm"
+                         style="max-height: 300px; width: 100%; object-fit: contain;">
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary py-3 rounded-pill fw-bold shadow-sm">
+                        <i class="fa-solid fa-paper-plane me-2"></i>캡처본 제출하기
+                    </button>
+                    <a href="{{ url_for('login') }}" class="btn btn-light py-2 rounded-pill text-muted small">
+                        나중에 제출하고 로그인 화면으로 가기
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 이미 제출한 경우 안내 -->
+        {% if user and user.verification_image %}
+        <div class="alert border-0 rounded-3 mt-3 text-center py-3 shadow-sm" style="background: #f0fff4;">
+            <i class="fa-solid fa-circle-check text-success me-2"></i>
+            <small class="text-success fw-bold">이미 인증 캡처본이 제출되어 있습니다. 과대의 승인을 기다려 주세요.</small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 이미지 미리보기 스크립트 -->
+<script>
+document.getElementById('verification_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+        alert('PNG, JPG, JPEG 형식의 파일만 업로드할 수 있습니다.');
+        e.target.value = '';
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        alert('파일 크기가 5MB를 초과합니다.');
+        e.target.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        document.getElementById('preview-img').src = evt.target.result;
+        document.getElementById('preview-area').classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+});
+</script>
+{% endblock %}

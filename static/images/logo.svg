@@ -1,0 +1,10 @@
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- 부산대학교 상징색 Crimson 배경 -->
+  <rect width="40" height="40" rx="8" fill="#A71930"/>
+  <!-- 학문을 상징하는 책 모양 또는 단순화된 PNU 텍스트 -->
+  <path d="M10 12h20v16H10z" fill="none" stroke="white" stroke-width="1.5"/>
+  <path d="M10 16h20M10 20h20M10 24h20" stroke="white" stroke-width="1" opacity="0.5"/>
+  <text x="20" y="27" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle" font-weight="bold">PNU</text>
+  <!-- 장식 요소 -->
+  <path d="M5 5l5 5M35 5l-5 5M5 35l5-5M35 35l-5-5" stroke="white" stroke-width="1" opacity="0.3"/>
+</svg>

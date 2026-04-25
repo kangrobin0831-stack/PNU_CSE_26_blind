@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- HOT 실시간 인기글 섹션 -->
+{% if hot_posts %}
+<div class="mb-5">
+    <h5 class="fw-bold mb-3"><i class="fa-solid fa-fire text-danger me-2"></i>실시간 인기글</h5>
+    <div class="row g-3">
+        {% for post in hot_posts %}
+        <div class="col-md-4">
+            <a href="{{ url_for('view', post_id=post.id) }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm p-3 h-100 hot-card">
+                    <span class="badge bg-danger rounded-pill mb-2" style="width: fit-content; font-size: 0.65rem;">HOT</span>
+                    <h6 class="fw-bold text-dark text-truncate">{{ post.title }}</h6>
+                    <small class="text-muted"><i class="fa-solid fa-fire text-danger me-1"></i>{{ post.recommend_count }}</small>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="row mb-5 align-items-center">
+    <div class="col-md-8">
+        <h1 class="mb-1 display-5" style="font-family: 'Montserrat', sans-serif; font-weight: 900; letter-spacing: -0.05em; color: var(--dept-green-dark);">PNU CSE 26 BLIND</h1>
+        <p class="text-muted fs-5">우리들만의 비밀스럽고 자유로운 소통 공간</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="d-flex flex-column gap-2">
+            <a href="{{ url_for('write') }}" class="btn btn-write shadow-lg">
+                <i class="fa-solid fa-pen-nib me-2"></i>새 글 작성하기
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 검색 바 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form action="{{ url_for('index') }}" method="GET" class="d-flex shadow-sm rounded-pill overflow-hidden bg-white align-items-stretch">
+            {% if current_category %}
+            <input type="hidden" name="category" value="{{ current_category }}">
+            {% endif %}
+            <select name="search_type" class="form-select border-0 ps-4 pe-2 bg-light text-muted fw-bold" style="width: auto; border-radius: 0; cursor: pointer;">
+                <option value="title_content" {% if search_type == 'title_content' %}selected{% endif %}>제목+내용</option>
+                <option value="title" {% if search_type == 'title' %}selected{% endif %}>제목</option>
+                <option value="content" {% if search_type == 'content' %}selected{% endif %}>내용</option>
+            </select>
+            <input type="text" name="q" class="form-control border-0 px-3 py-2" placeholder="관심 있는 내용을 검색해 보세요" value="{{ search_query or '' }}">
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </form>
+        {% if search_query %}
+        <div class="mt-2 ps-3">
+            <small class="text-muted">
+                <strong>'{{ search_query }}'</strong> 검색 결과 ({{ posts|length }}건)
+                <a href="{{ url_for('index', category=current_category) }}" class="ms-2 text-decoration-none small text-primary">검색 초기화</a>
+            </small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 카테고리 & 정렬 헤더 -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <!-- 카테고리 탭 -->
+    <div class="nav nav-pills overflow-auto flex-nowrap pb-2 scrollbar-hide flex-grow-1">
+        <a class="nav-link {% if not current_category %}active{% endif %}" href="{{ url_for('index', sort=sort_option) }}">
+            <i class="fa-solid fa-layer-group me-1"></i>전체
+        </a>
+        <a class="nav-link {% if current_category == '공지사항' %}active{% endif %}" href="{{ url_for('index', category='공지사항', sort=sort_option) }}">
+            <i class="fa-solid fa-bullhorn me-1"></i>공지사항
+        </a>
+        <a class="nav-link {% if current_category == '자유게시판' %}active{% endif %}" href="{{ url_for('index', category='자유게시판', sort=sort_option) }}">
+            <i class="fa-solid fa-comments me-1"></i>자유게시판
+        </a>
+        <a class="nav-link {% if current_category == '학습/질문' %}active{% endif %}" href="{{ url_for('index', category='학습/질문', sort=sort_option) }}">
+            <i class="fa-solid fa-book-open me-1"></i>학습/질문
+        </a>
+        <a class="nav-link {% if current_category == '동아리/MT' %}active{% endif %}" href="{{ url_for('index', category='동아리/MT', sort=sort_option) }}">
+            <i class="fa-solid fa-beer-mug-empty me-1"></i>동아리/MT
+        </a>
+        <a class="nav-link {% if current_category == '건의사항' %}active{% endif %}" href="{{ url_for('index', category='건의사항', sort=sort_option) }}">
+            <i class="fa-solid fa-lightbulb me-1"></i>건의사항
+        </a>
+    </div>
+
+    <!-- 정렬 드롭다운 -->
+    <form action="{{ url_for('index') }}" method="GET" class="d-inline-block">
+        {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        {% if search_type %}<input type="hidden" name="search_type" value="{{ search_type }}">{% endif %}
+        <select name="sort" class="form-select border-0 shadow-sm rounded-pill px-4 py-2 bg-white fw-bold text-dark" onchange="this.form.submit()" style="cursor: pointer; min-width: 130px;">
+            <option value="latest" {% if sort_option == 'latest' %}selected{% endif %}>최신순</option>
+            <option value="likes" {% if sort_option == 'likes' %}selected{% endif %}>좋아요순</option>
+            <option value="comments" {% if sort_option == 'comments' %}selected{% endif %}>댓글 많은 순</option>
+        </select>
+    </form>
+</div>
+
+<!-- 게시글 목록 -->
+<div class="card border-0 bg-transparent">
+    {% if not posts %}
+    <div class="empty-state card bg-white border-0 shadow-sm">
+        <i class="fa-solid fa-box-open mb-3"></i>
+        <h4 class="fw-bold">아직 게시글이 없습니다</h4>
+        <p class="text-muted">첫 번째 이야기의 주인공이 되어보세요!</p>
+        <a href="{{ url_for('write') }}" class="btn btn-outline-primary mt-3 px-4 rounded-pill">글쓰기</a>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        {% for post in posts %}
+        <div class="col-12">
+            <a href="{{ url_for('view', post_id=post.id) }}" class="text-decoration-none">
+                <div class="card card-hover p-4 border-0 h-100 {% if post.is_notice %}bg-light border-start border-4 border-danger{% endif %}" {% if post.is_notice %}style="border-left-width: 6px !important;"{% endif %}>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            {% if post.is_notice %}
+                            <span class="badge bg-danger mb-2">공지</span>
+                            {% else %}
+                            <span class="category-badge bg-{{ post.category | replace('/', '-') }} mb-2 d-inline-block">{{ post.category }}</span>
+                            {% endif %}
+                            <h3 class="h5 fw-bold text-dark mb-1">
+                                {{ post.title }}
+                                {% if post.recommend_count >= 10 %}<i class="fa-solid fa-fire text-danger ms-1"></i>{% endif %}
+                            </h3>
+                        </div>
+                        <small class="text-muted fw-medium">{{ post.created_at.strftime('%m-%d %H:%M') }}</small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="anon-tag">
+                            <i class="fa-solid fa-user-secret anon-mask"></i>익명
+                        </div>
+                        <div class="text-muted small fw-bold d-flex gap-3">
+                            <span><i class="fa-solid fa-thumbs-up me-1"></i>{{ post.recommend_count }}</span>
+                            <span><i class="fa-regular fa-comment-dots me-1"></i>{{ post.comments|length }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- 페이징 (Pagination) -->
+{% if pagination and pagination.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center border-0 mb-0">
+        <!-- 이전 페이지 -->
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0 rounded-start-pill px-3 fw-bold" href="{{ url_for('index', page=pagination.prev_num, category=current_category, q=search_query, search_type=search_type, sort=sort_option) if pagination.has_prev else '#' }}" style="color: var(--text-dark);">
+                <i class="fa-solid fa-chevron-left me-1"></i>이전
+            </a>
+        </li>
+        
+        <!-- 페이지 번호 -->
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link shadow-sm border-0 px-3 fw-bold {% if page_num == pagination.page %}bg-primary text-white{% endif %}" {% if page_num != pagination.page %}style="color: var(--text-dark);"{% endif %} href="{{ url_for('index', page=page_num, category=current_category, q=search_query, search_type=search_type, sort=sort_option) }}">{{ page_num }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link shadow-sm border-0 px-3 text-muted fw-bold">...</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        <!-- 다음 페이지 -->
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link shadow-sm border-0 rounded-end-pill px-3 fw-bold" href="{{ url_for('index', page=pagination.next_num, category=current_category, q=search_query, search_type=search_type, sort=sort_option) if pagination.has_next else '#' }}" style="color: var(--text-dark);">
+                다음<i class="fa-solid fa-chevron-right ms-1"></i>
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

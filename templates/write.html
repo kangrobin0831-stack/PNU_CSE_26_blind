@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0 p-5">
+            <h2 class="fw-bold mb-4"><i class="fa-solid fa-pen-nib me-2"></i>새 이야기 작성</h2>
+
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">카테고리 선택</label>
+                    <select name="category" class="form-select p-3 bg-light border-0 rounded-3" required>
+                        <option value="" disabled selected>카테고리를 선택하세요</option>
+                        {% if is_admin %}
+                        <option value="공지사항">📢 공지사항 (관리자 전용)</option>
+                        {% endif %}
+                        <option value="자유게시판">💬 자유게시판</option>
+                        <option value="학습/질문">📖 학습/질문</option>
+                        <option value="동아리/MT">🍻 동아리/MT</option>
+                        <option value="건의사항">💡 건의사항</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">제목</label>
+                    <input type="text" name="title" class="form-control p-3 bg-light border-0 rounded-3"
+                           placeholder="제목을 입력하세요" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">내용</label>
+                    <textarea name="content" class="form-control p-3 bg-light border-0 rounded-3"
+                              rows="10" placeholder="동기들과 나누고 싶은 이야기를 적어보세요." required></textarea>
+                </div>
+
+                <!-- 사진 첨부 -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">
+                        <i class="fa-solid fa-image me-2"></i>사진 첨부 <span class="text-muted fw-normal small">(선택, PNG/JPG/JPEG/GIF · 최대 5MB)</span>
+                    </label>
+                    <input type="file" id="post_image" name="post_image"
+                           class="form-control bg-light border-0 rounded-3 p-3"
+                           accept=".png,.jpg,.jpeg,.gif">
+                    <!-- 미리보기 -->
+                    <div id="img-preview-wrap" class="mt-3 d-none">
+                        <img id="img-preview" src="#" alt="미리보기"
+                             style="max-width:100%; max-height:300px; object-fit:contain; border-radius:10px; border:1px solid #eee;">
+                        <div class="mt-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill mt-1" onclick="clearImage()">
+                                <i class="fa-solid fa-xmark me-1"></i>이미지 제거
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3 mt-5">
+                    <a href="{{ url_for('index') }}" class="btn btn-light px-5 py-2 rounded-pill fw-bold">취소</a>
+                    <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill fw-bold shadow-sm">작성 완료</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const imgInput = document.getElementById('post_image');
+const previewWrap = document.getElementById('img-preview-wrap');
+const previewImg  = document.getElementById('img-preview');
+const MAX_SIZE    = 5 * 1024 * 1024; // 5MB
+const ALLOWED     = ['image/png', 'image/jpeg', 'image/gif'];
+
+imgInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) { clearImage(); return; }
+
+    if (!ALLOWED.includes(file.type)) {
+        alert('PNG, JPG, JPEG, GIF 형식만 업로드할 수 있습니다.');
+        clearImage(); return;
+    }
+    if (file.size > MAX_SIZE) {
+        alert('파일 용량이 5MB를 초과합니다.');
+        clearImage(); return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewWrap.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+});
+
+function clearImage() {
+    imgInput.value = '';
+    previewImg.src = '#';
+    previewWrap.classList.add('d-none');
+}
+</script>
+{% endblock %}

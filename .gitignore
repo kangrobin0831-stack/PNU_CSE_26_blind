@@ -1,0 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# Environment variables (security)
+.env
+.flaskenv
+
+# Database
+instance/
+*.sqlite3
+*.db
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Uploaded images (except placeholder/default)
+static/uploads/*
+static/post_images/*
+!static/uploads/.gitkeep
+!static/post_images/.gitkeep

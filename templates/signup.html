@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0 p-4">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold" style="color: var(--dept-green);">회원가입</h2>
+                <p class="text-muted">26학번 동기들의 소통 공간에 합류하세요!</p>
+            </div>
+            
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">아이디</label>
+                        <input type="text" name="username" class="form-control" placeholder="아이디" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">닉네임 (게시판 표시 이름)</label>
+                        <input type="text" name="nickname" class="form-control" placeholder="익명 또는 실명" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">비밀번호</label>
+                    <input type="password" name="password" class="form-control" placeholder="강력한 비밀번호를 권장합니다" required>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">학번 (9자리)</label>
+                        <input type="text" name="student_id" class="form-control" placeholder="예: 202612345" maxlength="9" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">이메일</label>
+                        <input type="email" name="email" class="form-control" placeholder="example@email.com" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 btn-lg py-3 fw-bold mb-3 shadow-sm">계정 생성하기</button>
+                
+                <div class="text-center mt-2 small text-muted">
+                    이미 계정이 있으신가요? <a href="{{ url_for('login') }}" class="text-decoration-none fw-bold" style="color: var(--dept-green);">로그인</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-lg border-0 p-4">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold" style="color: var(--dept-green);">아이디 찾기</h2>
+                <p class="text-muted">가입 시 입력한 정보를 입력해 주세요.</p>
+            </div>
+            
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">학번 (9자리)</label>
+                    <input type="text" name="student_id" class="form-control" placeholder="예: 202612345" maxlength="9" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">이메일</label>
+                    <input type="email" name="email" class="form-control" placeholder="example@email.com" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-100 btn-lg py-3 fw-bold mb-3 shadow-sm">아이디 찾기</button>
+                
+                <div class="text-center">
+                    <a href="{{ url_for('login') }}" class="text-muted small text-decoration-none">로그인 페이지로 돌아가기</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
