@@ -507,6 +507,49 @@ def view(post_id):
                            user_recommended=user_recommended)
 
 
+@app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
+def edit_post(post_id):
+    post = db.get_or_404(Post, post_id)
+    if post.user_id != session.get('user_id') and not is_admin():
+        flash("수정 권한이 없습니다.")
+        return redirect(url_for('view', post_id=post.id))
+
+    if request.method == 'POST':
+        category = request.form.get('category', '')
+        if category == '공지사항' and not is_admin():
+            flash("공지사항은 관리자만 작성할 수 있습니다.")
+            return redirect(url_for('edit_post', post_id=post.id))
+
+        file = request.files.get('post_image')
+        if file and file.filename:
+            ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+            if ext not in POST_ALLOWED_EXTENSIONS:
+                flash("이미지는 PNG, JPG, JPEG, GIF 형식만 가능합니다.")
+                return redirect(url_for('edit_post', post_id=post.id))
+            
+            # 기존 이미지가 있으면 삭제
+            if post.image_path:
+                try:
+                    img_path = os.path.join(POST_IMAGE_FOLDER, post.image_path)
+                    if os.path.exists(img_path):
+                        os.remove(img_path)
+                except Exception as e:
+                    app.logger.warning(f"[edit_post] old image remove failed: {e}")
+
+            safe_name = uuid.uuid4().hex + '.' + ext
+            file.save(os.path.join(POST_IMAGE_FOLDER, safe_name))
+            post.image_path = safe_name
+
+        post.category = category
+        post.title = request.form.get('title', '').strip()
+        post.content = request.form.get('content', '').strip()
+        post.is_notice = (category == '공지사항')
+        db.session.commit()
+        return redirect(url_for('view', post_id=post.id))
+
+    return render_template('edit.html', post=post, is_admin=is_admin())
+
+
 @app.route('/post/<int:post_id>/delete', methods=['POST'])
 def delete_post(post_id):
     post = db.get_or_404(Post, post_id)

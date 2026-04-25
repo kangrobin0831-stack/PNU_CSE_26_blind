@@ -78,9 +78,14 @@
                 <i class="fa-solid fa-arrow-left me-2"></i>목록으로
             </a>
             {% if post.user_id == session.get('user_id') or session.get('is_admin') %}
-            <button type="button" class="btn btn-outline-danger px-4 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="fa-solid fa-trash-can me-2"></i>게시글 삭제
-            </button>
+            <div>
+                <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-outline-primary px-4 rounded-pill fw-bold me-2">
+                    <i class="fa-solid fa-pen me-2"></i>게시글 수정
+                </a>
+                <button type="button" class="btn btn-outline-danger px-4 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="fa-solid fa-trash-can me-2"></i>게시글 삭제
+                </button>
+            </div>
             {% endif %}
         </div>
 
