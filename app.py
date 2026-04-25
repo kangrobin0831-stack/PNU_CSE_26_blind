@@ -713,39 +713,45 @@ def admin_kick_user(user_id):
         return redirect(url_for('admin_dashboard'))
 
     user = db.get_or_404(User, user_id)
+    uid = user.id
 
-    # 이미지 삭제 로직
-    if user.verification_image:
-        img_path = os.path.join(UPLOAD_FOLDER, user.verification_image)
-        if os.path.exists(img_path):
-            try:
-                os.remove(img_path)
-            except Exception as e:
-                app.logger.warning(f"Failed to remove user image: {e}")
+    try:
+        # 1. 사용자가 쓴 글의 관련 정보(이미지, 추천, 신고) 선삭제
+        posts = Post.query.filter_by(user_id=uid).all()
+        for p in posts:
+            Recommendation.query.filter_by(post_id=p.id).delete()
+            Report.query.filter_by(post_id=p.id).delete()
+            if p.image_path:
+                p_img_path = os.path.join(POST_IMAGE_FOLDER, p.image_path)
+                if os.path.exists(p_img_path):
+                    try: os.remove(p_img_path)
+                    except: pass
 
-    # 게시글 첨부 이미지 및 관련 신고/추천 파기
-    for post in user.posts:
-        Recommendation.query.filter_by(post_id=post.id).delete()
-        Report.query.filter_by(post_id=post.id).delete()
-        if post.image_path:
-            p_img_path = os.path.join(POST_IMAGE_FOLDER, post.image_path)
-            if os.path.exists(p_img_path):
-                try:
-                    os.remove(p_img_path)
-                except Exception as e:
-                    app.logger.warning(f"Failed to remove post image: {e}")
+        # 2. 사용자가 쓴 댓글의 신고 기록 삭제
+        comments = Comment.query.filter_by(user_id=uid).all()
+        for c in comments:
+            Report.query.filter_by(comment_id=c.id).delete()
 
-    # 사용자가 쓴 댓글에 달린 신고 파기
-    for comment in user.comments:
-        Report.query.filter_by(comment_id=comment.id).delete()
+        # 3. 사용자가 직접 행한 신고 및 추천 기록 삭제
+        Report.query.filter_by(user_id=uid).delete()
+        Recommendation.query.filter_by(user_id=uid).delete()
 
-    # 사용자가 누른 신고 및 추천 파기
-    Report.query.filter_by(user_id=user.id).delete()
-    Recommendation.query.filter_by(user_id=user.id).delete()
+        # 4. 사용자 인증 이미지 삭제
+        if user.verification_image:
+            img_path = os.path.join(UPLOAD_FOLDER, user.verification_image)
+            if os.path.exists(img_path):
+                try: os.remove(img_path)
+                except: pass
 
-    db.session.delete(user)
-    db.session.commit()
-    flash(f"해당 사용자({user.nickname})를 커뮤니티에서 강퇴했습니다.")
+        # 5. 최종 사용자 삭제
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"사용자({user.nickname})가 성공적으로 강퇴 처리되었습니다.")
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Kick failed for user {uid}: {e}")
+        flash("강퇴 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
+
     return redirect(url_for('admin_dashboard'))
 
 
