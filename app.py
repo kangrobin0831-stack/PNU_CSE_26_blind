@@ -513,7 +513,7 @@ def view(post_id):
 @app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])
 def edit_post(post_id):
     post = db.get_or_404(Post, post_id)
-    if post.user_id != session.get('user_id') and not is_admin():
+    if not is_admin():
         flash("수정 권한이 없습니다.")
         return redirect(url_for('view', post_id=post.id))
 
