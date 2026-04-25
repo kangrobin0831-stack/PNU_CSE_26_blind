@@ -661,12 +661,14 @@ def report_comment(comment_id):
 @app.route('/admin_pnu_hidden_26')
 def admin_dashboard():
     if not is_admin(): abort(403)
-    user_count        = User.query.count()
+    all_users         = User.query.all()
+    user_count        = len(all_users)
     today_posts       = Post.query.filter(Post.created_at >= datetime.now(timezone.utc).date()).count()
     pending_users     = User.query.filter_by(is_approved=False, is_admin=False).all()
     reported_posts    = Post.query.filter(Post.report_count > 0).all()
     reported_comments = Comment.query.filter(Comment.report_count > 0).all()
     return render_template('admin_dashboard.html',
+                           all_users=all_users,
                            user_count=user_count,
                            today_posts=today_posts,
                            pending_users=pending_users,

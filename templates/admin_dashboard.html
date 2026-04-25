@@ -78,10 +78,10 @@
         <!-- 요약 통계 -->
         <div class="row g-4 mb-5">
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm p-4 text-center bg-white admin-stat-card">
+                <div class="card border-0 shadow-sm p-4 text-center bg-white admin-stat-card card-hover" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#allUsersModal">
                     <div class="text-primary mb-2"><i class="fa-solid fa-users fa-2x"></i></div>
                     <h3 class="fw-bold mb-0">{{ user_count }}</h3>
-                    <small class="text-muted">전체 회원 수</small>
+                    <small class="text-primary fw-bold">전체 회원 수 (클릭하여 확인)</small>
                 </div>
             </div>
             <div class="col-md-4">
@@ -186,6 +186,54 @@
                             {% if not reported_comments %}
                             <tr><td colspan="3" class="text-center py-4 text-muted">신고된 댓글이 없습니다.</td></tr>
                             {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 전체 회원 목록 모달 -->
+<div class="modal fade" id="allUsersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pt-4 px-4 pb-2">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-users text-primary me-2"></i>전체 회원 목록</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>아이디</th>
+                                <th>닉네임</th>
+                                <th>학번</th>
+                                <th>이메일</th>
+                                <th>상태</th>
+                                <th>가입일</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in all_users %}
+                            <tr>
+                                <td class="fw-bold">{{ u.username }}</td>
+                                <td>{{ u.nickname }}</td>
+                                <td><code>{{ u.student_id }}</code></td>
+                                <td>{{ u.email }}</td>
+                                <td>
+                                    {% if u.is_admin %}
+                                    <span class="badge bg-warning text-dark">관리자</span>
+                                    {% elif u.is_approved %}
+                                    <span class="badge bg-success">승인됨</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">대기중</span>
+                                    {% endif %}
+                                </td>
+                                <td><small class="text-muted">{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</small></td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
