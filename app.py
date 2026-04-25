@@ -704,6 +704,41 @@ def admin_reject_user(user_id):
     return redirect(url_for('admin_dashboard'))
 
 
+@app.route('/admin/user/<int:user_id>/kick', methods=['POST'])
+def admin_kick_user(user_id):
+    """강퇴: DB 삭제 (Cascade로 작성글/댓글 자동삭제 됨) + 업로드 이미지 파일 파기"""
+    if not is_admin(): abort(403)
+    if user_id == session.get('user_id'):
+        flash("자기 자신은 강퇴할 수 없습니다.")
+        return redirect(url_for('admin_dashboard'))
+
+    user = db.get_or_404(User, user_id)
+
+    # 이미지 삭제 로직
+    if user.verification_image:
+        img_path = os.path.join(UPLOAD_FOLDER, user.verification_image)
+        if os.path.exists(img_path):
+            try:
+                os.remove(img_path)
+            except Exception as e:
+                app.logger.warning(f"Failed to remove user image: {e}")
+
+    # 게시글 첨부 이미지도 삭제해야 하지만 cascade delete는 DB만 지우므로 파일은 수동으로 지워야 함
+    for post in user.posts:
+        if post.image_path:
+            p_img_path = os.path.join(POST_IMAGE_FOLDER, post.image_path)
+            if os.path.exists(p_img_path):
+                try:
+                    os.remove(p_img_path)
+                except Exception as e:
+                    app.logger.warning(f"Failed to remove post image: {e}")
+
+    db.session.delete(user)
+    db.session.commit()
+    flash(f"해당 사용자({user.nickname})를 커뮤니티에서 강퇴했습니다.")
+    return redirect(url_for('admin_dashboard'))
+
+
 @app.route('/admin/post/<int:post_id>/reset_report', methods=['POST'])
 def admin_reset_post_report(post_id):
     if not is_admin(): abort(403)

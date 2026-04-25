@@ -213,6 +213,7 @@
                                 <th>이메일</th>
                                 <th>상태</th>
                                 <th>가입일</th>
+                                <th>작업</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -232,6 +233,14 @@
                                     {% endif %}
                                 </td>
                                 <td><small class="text-muted">{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</small></td>
+                                <td>
+                                    {% if u.id != session.get('user_id') %}
+                                    <form action="{{ url_for('admin_kick_user', user_id=u.id) }}" method="POST" onsubmit="return confirm('정말로 이 사용자를 강퇴하시겠습니까? 작성한 모든 게시글과 댓글이 삭제됩니다.');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">강퇴</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
