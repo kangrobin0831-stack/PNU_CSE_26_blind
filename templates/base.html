@@ -34,7 +34,7 @@
     <!-- Google Fonts (Montserrat for Title) -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}?v=1">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}?v=2">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -51,10 +51,14 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if session.get('user_id') %}
-                        <li class="nav-item me-3">
-                            <a href="{{ url_for('profile') }}" class="text-white text-decoration-none small hover-opacity">
-                                <i class="fa-solid fa-circle-user me-1"></i>
+                        <li class="nav-item me-3 d-flex align-items-center">
+                            <span class="text-white small">
                                 <strong>{{ session.get('nickname') }}</strong>님 환영합니다
+                            </span>
+                        </li>
+                        <li class="nav-item me-2">
+                            <a href="{{ url_for('profile') }}" class="btn btn-outline-light btn-sm px-3 fw-bold">
+                                <i class="fa-solid fa-user me-1"></i>마이페이지
                             </a>
                         </li>
                         {% if session.get('is_admin') %}
