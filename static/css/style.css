@@ -236,10 +236,10 @@ select.form-select:focus {
     border-top: 4px solid var(--dept-green);
 }
 
-/* 모바일 최적화 (Responsive Design) - 가독성 강화 버전 */
+/* 모바일 최적화 (Responsive Design) - 가독성 및 UI 레이아웃 집중 강화 */
 @media (max-width: 768px) {
     body {
-        font-size: 16px; /* 모바일 기본 폰트 크기 유지 */
+        font-size: 16px;
     }
 
     /* 컨테이너 여백 최적화 */
@@ -248,150 +248,109 @@ select.form-select:focus {
         padding-right: 16px;
     }
 
-    /* 타이틀 섹션 */
-    h1.display-5 {
-        font-size: 2rem !important;
-        margin-top: 1rem;
-    }
-    .text-muted.fs-5 {
-        font-size: 1.1rem !important;
-        line-height: 1.4;
-    }
-
-    /* 카테고리 탭: 가로 스크롤 및 터치 영역 확대 */
+    /* 1. 상단 카테고리 메뉴: 가로 스와이프 및 글자 쪼개짐 방지 */
     .nav-pills {
-        display: flex;
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        display: flex !important;
+        flex-wrap: nowrap !important; /* 절대 줄바꿈 금지 */
+        overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
-        padding-bottom: 15px;
+        padding-bottom: 12px;
+        margin-bottom: 15px;
         margin-left: -16px;
         margin-right: -16px;
         padding-left: 16px;
         padding-right: 16px;
+        gap: 8px;
     }
     .nav-pills .nav-link {
-        padding: 0.7rem 1.1rem;
-        font-size: 0.9rem;
+        white-space: nowrap !important; /* 글자 세로로 쪼개짐 방지 (공\n지\n사\n항 방지) */
+        padding: 0.6rem 1.1rem !important;
+        font-size: 0.9rem !important;
+        flex: 0 0 auto;
+    }
+    .nav-pills::-webkit-scrollbar {
+        display: none; /* 스크롤바 숨김 */
     }
 
-    /* 게시글 카드 가독성 개선 */
-    .card.card-hover {
-        padding: 1.25rem !important; /* 내부 여백 조정 */
-        border-radius: 14px;
-        margin-bottom: 0.5rem;
+    /* 2. 게시글 상세페이지 하단 버튼 정렬 ('목록으로' 줄바꿈 방지) */
+    .d-flex.justify-content-between.mb-5.px-2 {
+        display: flex !important;
+        flex-direction: row !important; /* 가로 정렬 강제 */
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 10px !important;
     }
-    .card.card-hover h3.h5 {
-        font-size: 1.1rem;
-        line-height: 1.5;
-        margin-bottom: 0.5rem !important;
-    }
-    .card.card-hover .small.text-muted {
-        font-size: 0.8rem;
+    .d-flex.justify-content-between.mb-5.px-2 .btn {
+        white-space: nowrap !important; /* '목록\n으로' 방지 */
+        padding: 0.5rem 0.9rem !important;
+        font-size: 0.85rem !important;
+        display: flex;
+        align-items: center;
     }
 
-    /* 게시글 본문 (상세페이지) */
-    .card-body.p-5 {
-        padding: 1.5rem !important; /* 상세페이지 모바일 여백 줄임 */
+    /* 3. 댓글 우측 버튼 디자인 (신고/답글/삭제) */
+    .comment-actions {
+        display: flex !important;
+        gap: 6px !important;
+        margin-top: 8px; /* 모바일에서는 댓글 내용 아래로 배치되거나 옆으로 정렬 */
     }
-    .display-6 {
-        font-size: 1.75rem !important;
-        line-height: 1.3;
+    .comment-actions .btn-link {
+        background-color: #f1f3f5 !important; /* 둥근 회색 배경 */
+        color: #495057 !important;
+        padding: 5px 12px !important;
+        border-radius: 20px !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-decoration: none !important;
+        border: 1px solid #e9ecef !important;
     }
+    .comment-actions .text-danger {
+        color: #dc3545 !important;
+    }
+
+    /* 게시글 본문 가독성 */
     .py-3.fs-5 {
-        font-size: 1.15rem !important; /* 본문 글자 크기 확대 */
+        font-size: 1.15rem !important;
         line-height: 1.8;
-        letter-spacing: -0.01em;
-        color: #1a1a1a;
+        color: #111;
     }
-
-    /* 이미지 최적화 */
-    .card-body img {
-        border-radius: 8px;
-        margin-top: 1.5rem;
-    }
-
-    /* 댓글 섹션 가독성 */
-    .comment-card {
-        padding: 1rem !important;
-        margin-bottom: 0.75rem;
-    }
-    .comment-card .text-dark {
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-    
-    /* 버튼 모바일 최적화 */
-    .btn-lg {
-        width: 100%;
-        padding-top: 0.8rem;
-        padding-bottom: 0.8rem;
-        font-size: 1.1rem;
-    }
-    
-    .d-flex.gap-3 {
-        flex-direction: column;
-        gap: 10px !important;
-    }
-    .d-flex.gap-3 .btn {
-        width: 100%;
-    }
-
-    /* 새로고침 및 글쓰기 버튼 레이아웃 */
-    .flex-md-row.gap-2 {
-        display: grid !important;
-        grid-template-columns: 1fr 2fr; /* 새로고침은 작게, 글쓰기는 크게 */
-        gap: 10px !important;
-        margin-top: 1rem;
-    }
-
-    /* 네비게이션 바 메뉴 정렬 */
-    .navbar-collapse {
-        background: var(--dept-green-dark);
-        margin: 0 -20px;
-        padding: 10px 20px;
-        border-bottom-left-radius: 20px;
-        border-bottom-right-radius: 20px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-
-    .navbar-nav {
-        padding: 1rem 0;
-    }
-
-    .navbar-nav .nav-item {
-        width: 100%;
-        text-align: left;
-        margin-bottom: 0.8rem;
-    }
-
-    .navbar-nav .btn {
-        width: 100%;
-        text-align: center;
-        padding: 0.8rem;
-    }
-
-    /* 게시글 상세 페이지 패딩 조정 */
     .card-body.p-5 {
-        padding: 1.8rem 1.2rem !important;
+        padding: 1.8rem 1.25rem !important;
     }
-    
-    .display-6 {
-        font-size: 1.6rem;
+    h2.display-6 {
+        font-size: 1.65rem !important;
         word-break: keep-all;
     }
 
-    /* 실시간 인기글 모바일 가로 스크롤 */
+    /* 메인화면 제목/설명 */
+    h1.display-5 {
+        font-size: 1.8rem !important;
+        margin-top: 1rem;
+    }
+    .text-muted.fs-5 {
+        font-size: 1rem !important;
+    }
+
+    /* 인기글 모바일 가로 스크롤 */
     .row.g-3 {
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
         padding-bottom: 10px;
-        margin-left: -20px;
-        margin-right: -20px;
-        padding-left: 20px;
-        padding-right: 20px;
+        margin-left: -16px;
+        margin-right: -16px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
-    .row.g-3::-webkit-scrollbar { display: none; }
-    .col-md-4 { flex: 0 0 80%; }
+    .row.g-3 .col-md-4 {
+        flex: 0 0 85%;
+    }
+    
+    /* 버튼 모바일 최적화 */
+    .flex-md-row.gap-2 {
+        display: grid !important;
+        grid-template-columns: 1fr 2fr;
+        gap: 10px !important;
+        margin-top: 1rem;
+    }
 }

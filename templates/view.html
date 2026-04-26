@@ -118,19 +118,21 @@
                     <div class="fw-bold text-dark">
                         <i class="fa-solid fa-user-secret anon-mask me-1"></i>{{ comment_map[comment.id] }}
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <small class="text-muted">{{ (comment.created_at|kst).strftime('%m-%d %H:%M') }}</small>
-                        <form action="{{ url_for('report_comment', comment_id=comment.id) }}" method="POST" class="d-inline">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-link text-danger btn-sm p-0 text-decoration-none">신고</button>
-                        </form>
-                        <button type="button" class="btn btn-link text-primary btn-sm p-0 text-decoration-none btn-reply-toggle" data-comment-id="{{ comment.id }}">답글</button>
-                        {% if comment.user_id == session.get('user_id') or session.get('is_admin') %}
-                        <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST" class="d-inline" onsubmit="return confirm('댓글을 삭제하시겠습니까?');">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-link text-muted btn-sm p-0 text-decoration-none">삭제</button>
-                        </form>
-                        {% endif %}
+                    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                        <small class="text-muted me-1">{{ (comment.created_at|kst).strftime('%m-%d %H:%M') }}</small>
+                        <div class="comment-actions">
+                            <form action="{{ url_for('report_comment', comment_id=comment.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-link text-danger">신고</button>
+                            </form>
+                            <button type="button" class="btn btn-link text-primary btn-reply-toggle" data-comment-id="{{ comment.id }}">답글</button>
+                            {% if comment.user_id == session.get('user_id') or session.get('is_admin') %}
+                            <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST" class="d-inline" onsubmit="return confirm('댓글을 삭제하시겠습니까?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-link text-muted">삭제</button>
+                            </form>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 
@@ -150,13 +152,15 @@
                                 <i class="fa-solid fa-user-secret anon-mask me-1"></i>{{ comment_map[reply.id] }}
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ (reply.created_at|kst).strftime('%m-%d %H:%M') }}</small>
-                                {% if reply.user_id == session.get('user_id') or session.get('is_admin') %}
-                                <form action="{{ url_for('delete_comment', comment_id=reply.id) }}" method="POST" class="d-inline" onsubmit="return confirm('답글을 삭제하시겠습니까?');">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-link text-muted btn-sm p-0 text-decoration-none" style="font-size: 0.75rem;">삭제</button>
-                                </form>
-                                {% endif %}
+                                <small class="text-muted me-1" style="font-size: 0.75rem;">{{ (reply.created_at|kst).strftime('%m-%d %H:%M') }}</small>
+                                <div class="comment-actions">
+                                    {% if reply.user_id == session.get('user_id') or session.get('is_admin') %}
+                                    <form action="{{ url_for('delete_comment', comment_id=reply.id) }}" method="POST" class="d-inline" onsubmit="return confirm('답글을 삭제하시겠습니까?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-link text-muted">삭제</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         <div class="text-dark small" style="white-space: pre-wrap;">{{ reply.content }}</div>
