@@ -272,20 +272,30 @@ select.form-select:focus {
         display: none; /* 스크롤바 숨김 */
     }
 
-    /* 2. 게시글 상세페이지 하단 버튼 정렬 ('목록으로' 줄바꿈 방지) */
+    /* 2. 게시글 상세페이지 하단 버튼 정렬 ('목록으로' 디자인 강화) */
     .d-flex.justify-content-between.mb-5.px-2 {
         display: flex !important;
-        flex-direction: row !important; /* 가로 정렬 강제 */
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
         gap: 10px !important;
+        margin-top: 2rem;
     }
     .d-flex.justify-content-between.mb-5.px-2 .btn {
-        white-space: nowrap !important; /* '목록\n으로' 방지 */
-        padding: 0.5rem 0.9rem !important;
+        white-space: nowrap !important;
+        padding: 8px 16px !important;
         font-size: 0.85rem !important;
+        border-radius: 50px !important; /* 둥글게 감싸기 */
+        font-weight: 700 !important;
         display: flex;
         align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    }
+    /* 목록으로 버튼 전용 스타일 (흰색 배경에 테두리) */
+    .d-flex.justify-content-between.mb-5.px-2 .btn-light {
+        background-color: white !important;
+        border: 1px solid #ddd !important;
+        color: #495057 !important;
     }
 
     /* 3. 댓글 우측 버튼 디자인 (신고/답글/삭제) */
