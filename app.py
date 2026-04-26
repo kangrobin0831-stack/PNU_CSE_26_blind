@@ -117,6 +117,11 @@ class Report(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
     comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
 
+if __name__ == '__main__':
+    # Render가 지정해주는 포트를 사용하고, 모든 외부 접속(0.0.0.0)을 허용합니다.
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
 with app.app_context():
     db.create_all()
     print("[OK] DB 테이블 확인/생성 완료")
@@ -843,4 +848,8 @@ def sitemap_xml():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        db.create_all()
+    # Render가 지정해주는 포트를 사용하고, 모든 외부 접속(0.0.0.0)을 허용합니다.
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
