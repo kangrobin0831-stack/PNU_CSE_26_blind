@@ -57,12 +57,10 @@ from flask_mail import Message
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 # =============================================
-# 헬퍼 함수
+# 헬퍼 함수 및 설정
 # =============================================
 
-def get_kst_now():
-    """한국 시간(KST) 반환"""
-    return datetime.now(timezone(timedelta(hours=9)))
+KST = timezone(timedelta(hours=9))
 
 def allowed_file(filename):
     """확장자 화이트리스트 검사 (웹쉘 업로드 차단)"""
@@ -84,7 +82,7 @@ class User(db.Model):
     verification_image = db.Column(db.String(256), nullable=True)           # 인증 이미지 파일명
     login_attempts = db.Column(db.Integer, default=0, nullable=False)
     lock_until = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=get_kst_now)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(KST))
     posts = db.relationship('Post', backref='author', cascade='all, delete-orphan', lazy=True)
     comments = db.relationship('Comment', backref='author', cascade='all, delete-orphan', lazy=True)
 
@@ -98,7 +96,7 @@ class Post(db.Model):
     recommend_count = db.Column(db.Integer, default=0, nullable=False)
     report_count = db.Column(db.Integer, default=0, nullable=False)
     image_path = db.Column(db.String(256), nullable=True)  # 게시글 첨부 이미지
-    created_at = db.Column(db.DateTime, default=get_kst_now)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(KST))
     comments = db.relationship('Comment', backref='post', cascade='all, delete-orphan',
                                order_by='Comment.created_at', lazy=True)
 
@@ -109,7 +107,7 @@ class Comment(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
     content = db.Column(db.Text, nullable=False)
     report_count = db.Column(db.Integer, default=0, nullable=False)
-    created_at = db.Column(db.DateTime, default=get_kst_now)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(KST))
     replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]),
                                cascade='all, delete-orphan', order_by='Comment.created_at', lazy=True)
 
