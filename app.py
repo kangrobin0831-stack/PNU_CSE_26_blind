@@ -10,6 +10,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
+import requests
+import base64
 
 load_dotenv()
 
@@ -69,6 +71,34 @@ def kst_filter(dt):
 # =============================================
 
 KST = timezone(timedelta(hours=9))
+
+def upload_to_imgbb(file):
+    """ImgBB API를 사용하여 이미지를 업로드하고 URL을 반환"""
+    api_key = os.environ.get('IMGBB_API_KEY')
+    if not api_key:
+        app.logger.error("IMGBB_API_KEY is not set!")
+        return None
+    
+    try:
+        # 파일을 base64로 인코딩
+        img_data = base64.b64encode(file.read()).decode('utf-8')
+        response = requests.post(
+            "https://api.imgbb.com/1/upload",
+            data={
+                "key": api_key,
+                "image": img_data
+            },
+            timeout=10
+        )
+        res_json = response.json()
+        if res_json.get('success'):
+            return res_json['data']['url'] # 실제 이미지 URL 반환
+        else:
+            app.logger.error(f"ImgBB Error: {res_json}")
+            return None
+    except Exception as e:
+        app.logger.error(f"ImgBB Upload Exception: {e}")
+        return None
 
 def allowed_file(filename):
     """확장자 화이트리스트 검사 (웹쉘 업로드 차단)"""
@@ -280,19 +310,13 @@ def verify():
             flash("PNG, JPG, JPEG 형식의 파일만 업로드할 수 있습니다.")
             return redirect(url_for('verify'))
 
-        # 보안 2: UUID 파일명으로 난독화 (경로 조작 및 파일명 공격 차단)
-        ext = file.filename.rsplit('.', 1)[1].lower()
-        safe_filename = uuid.uuid4().hex + '.' + ext
-        save_path = os.path.join(UPLOAD_FOLDER, safe_filename)
-        file.save(save_path)
+        # ImgBB 업로드
+        image_url = upload_to_imgbb(file)
+        if not image_url:
+            flash("이미지 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
+            return redirect(url_for('verify'))
 
-        # 기존 이미지가 있으면 삭제 후 교체
-        if user.verification_image:
-            old_path = os.path.join(UPLOAD_FOLDER, user.verification_image)
-            if os.path.exists(old_path):
-                os.remove(old_path)
-
-        user.verification_image = safe_filename
+        user.verification_image = image_url
         db.session.commit()
 
         session.pop('pending_user_id', None)
@@ -505,18 +529,19 @@ def write():
             flash("공지사항은 관리자만 작성할 수 있습니다.")
             return redirect(url_for('write'))
 
-        # 게시글 이미지 보안 업로드
-        saved_image = None
+        # ImgBB 업로드
+        saved_image_url = None
         file = request.files.get('post_image')
         if file and file.filename:
             ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
             if ext not in POST_ALLOWED_EXTENSIONS:
                 flash("이미지는 PNG, JPG, JPEG, GIF 형식만 가능합니다.")
                 return redirect(url_for('write'))
-            # 보안: UUID로 파일명 난독화 (경로 조작 공격 차단)
-            safe_name = uuid.uuid4().hex + '.' + ext
-            file.save(os.path.join(POST_IMAGE_FOLDER, safe_name))
-            saved_image = safe_name
+            
+            saved_image_url = upload_to_imgbb(file)
+            if not saved_image_url:
+                flash("이미지 업로드 중 오류가 발생했습니다.")
+                return redirect(url_for('write'))
 
         db.session.add(Post(
             user_id=session['user_id'],
@@ -524,7 +549,7 @@ def write():
             title=request.form.get('title', '').strip(),
             content=request.form.get('content', '').strip(),
             is_notice=(category == '공지사항'),
-            image_path=saved_image,
+            image_path=saved_image_url,
         ))
         db.session.commit()
         return redirect(url_for('index'))
@@ -569,25 +594,12 @@ def edit_post(post_id):
             flash("공지사항은 관리자만 작성할 수 있습니다.")
             return redirect(url_for('edit_post', post_id=post.id))
 
-        file = request.files.get('post_image')
-        if file and file.filename:
-            ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
-            if ext not in POST_ALLOWED_EXTENSIONS:
-                flash("이미지는 PNG, JPG, JPEG, GIF 형식만 가능합니다.")
+            image_url = upload_to_imgbb(file)
+            if image_url:
+                post.image_path = image_url
+            else:
+                flash("이미지 업로드에 실패했습니다.")
                 return redirect(url_for('edit_post', post_id=post.id))
-            
-            # 기존 이미지가 있으면 삭제
-            if post.image_path:
-                try:
-                    img_path = os.path.join(POST_IMAGE_FOLDER, post.image_path)
-                    if os.path.exists(img_path):
-                        os.remove(img_path)
-                except Exception as e:
-                    app.logger.warning(f"[edit_post] old image remove failed: {e}")
-
-            safe_name = uuid.uuid4().hex + '.' + ext
-            file.save(os.path.join(POST_IMAGE_FOLDER, safe_name))
-            post.image_path = safe_name
 
         post.category = category
         post.title = request.form.get('title', '').strip()

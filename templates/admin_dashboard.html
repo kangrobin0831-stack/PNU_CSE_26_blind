@@ -40,8 +40,8 @@
                                 <td><small class="text-muted">{{ (u.created_at|kst).strftime('%m-%d %H:%M') }}</small></td>
                                 <td>
                                     {% if u.verification_image %}
-                                    <a href="{{ url_for('static', filename='uploads/' + u.verification_image) }}" target="_blank">
-                                        <img src="{{ url_for('static', filename='uploads/' + u.verification_image) }}"
+                                    <a href="{{ u.verification_image }}" target="_blank">
+                                        <img src="{{ u.verification_image }}"
                                              alt="인증이미지"
                                              style="height: 60px; width: 90px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd;">
                                     </a>
