@@ -23,6 +23,10 @@ if db_url.startswith('postgres://'):
     db_url = db_url.replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 보안: 파일 업로드 5MB 제한
 
 # 인증 이미지 경로 (회원가입용)
