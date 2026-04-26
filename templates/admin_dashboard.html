@@ -37,7 +37,7 @@
                                 <td class="fw-bold">{{ u.username }}</td>
                                 <td>{{ u.nickname }}</td>
                                 <td><code>{{ u.student_id }}</code></td>
-                                <td><small class="text-muted">{{ u.created_at.strftime('%m-%d %H:%M') }}</small></td>
+                                <td><small class="text-muted">{{ (u.created_at|kst).strftime('%m-%d %H:%M') }}</small></td>
                                 <td>
                                     {% if u.verification_image %}
                                     <a href="{{ url_for('static', filename='uploads/' + u.verification_image) }}" target="_blank">
@@ -232,7 +232,7 @@
                                     <span class="badge bg-secondary">대기중</span>
                                     {% endif %}
                                 </td>
-                                <td><small class="text-muted">{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '-' }}</small></td>
+                                <td><small class="text-muted">{{ (u.created_at|kst).strftime('%Y-%m-%d') if u.created_at else '-' }}</small></td>
                                 <td>
                                     {% if u.id != session.get('user_id') %}
                                     <form action="{{ url_for('admin_kick_user', user_id=u.id) }}" method="POST" onsubmit="return confirm('정말로 이 사용자를 강퇴하시겠습니까? 작성한 모든 게시글과 댓글이 삭제됩니다.');">

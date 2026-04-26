@@ -19,7 +19,7 @@
                     </div>
                     <div class="text-end text-muted small">
                         <div class="mb-1">
-                            <i class="fa-regular fa-clock me-1"></i>{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            <i class="fa-regular fa-clock me-1"></i>{{ (post.created_at|kst).strftime('%Y-%m-%d %H:%M') }}
                         </div>
                         <div class="anon-tag bg-white border">
                             <i class="fa-solid fa-user-secret anon-mask"></i>익명 (글쓴이)
@@ -119,7 +119,7 @@
                         <i class="fa-solid fa-user-secret anon-mask me-1"></i>{{ comment_map[comment.id] }}
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <small class="text-muted">{{ comment.created_at.strftime('%m-%d %H:%M') }}</small>
+                        <small class="text-muted">{{ (comment.created_at|kst).strftime('%m-%d %H:%M') }}</small>
                         <form action="{{ url_for('report_comment', comment_id=comment.id) }}" method="POST" class="d-inline">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-link text-danger btn-sm p-0 text-decoration-none">신고</button>
@@ -150,7 +150,7 @@
                                 <i class="fa-solid fa-user-secret anon-mask me-1"></i>{{ comment_map[reply.id] }}
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ reply.created_at.strftime('%m-%d %H:%M') }}</small>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ (reply.created_at|kst).strftime('%m-%d %H:%M') }}</small>
                                 {% if reply.user_id == session.get('user_id') or session.get('is_admin') %}
                                 <form action="{{ url_for('delete_comment', comment_id=reply.id) }}" method="POST" class="d-inline" onsubmit="return confirm('답글을 삭제하시겠습니까?');">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

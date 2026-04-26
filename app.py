@@ -56,6 +56,14 @@ mail = Mail(app)
 from flask_mail import Message
 serializer = URLSafeTimedSerializer(app.secret_key)
 
+# [추가] 진자2 템플릿용 한국 시간 필터
+@app.template_filter('kst')
+def kst_filter(dt):
+    if not dt:
+        return ""
+    # DB에 저장된 시간(UTC)에 9시간을 더해서 반환
+    return dt + timedelta(hours=9)
+
 # =============================================
 # 헬퍼 함수 및 설정
 # =============================================

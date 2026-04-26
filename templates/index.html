@@ -128,7 +128,7 @@
                                 {% if post.recommend_count >= 10 %}<i class="fa-solid fa-fire text-danger ms-1"></i>{% endif %}
                             </h3>
                         </div>
-                        <small class="text-muted fw-medium">{{ post.created_at.strftime('%m-%d %H:%M') }}</small>
+                        <small class="text-muted fw-medium">{{ (post.created_at|kst).strftime('%m-%d %H:%M') }}</small>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="anon-tag">
