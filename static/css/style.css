@@ -381,10 +381,11 @@ select.form-select:focus {
     }
 
     .navbar-nav .nav-item {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 12px !important; /* 버튼 간격 확보 */
-        margin-right: 0 !important; /* 기존 margin-right 제거 */
+        width: 100% !important;
+        text-align: center !important;
+        margin-bottom: 12px !important; /* 위아래 간격만 유지 */
+        margin-right: 0 !important;    /* 기존 me-2, me-3 등 강제 무력화 */
+        padding: 0 !important;
     }
 
     .navbar-nav .nav-item:last-child {
