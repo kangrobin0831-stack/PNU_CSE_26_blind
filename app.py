@@ -593,7 +593,8 @@ def edit_post(post_id):
         if category == '공지사항' and not is_admin():
             flash("공지사항은 관리자만 작성할 수 있습니다.")
             return redirect(url_for('edit_post', post_id=post.id))
-
+        file = request.files.get('post_image')
+        if file and file.filename:
             image_url = upload_to_imgbb(file)
             if image_url:
                 post.image_path = image_url
