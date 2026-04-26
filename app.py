@@ -35,9 +35,18 @@ POST_IMAGE_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'st
 POST_ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 os.makedirs(POST_IMAGE_FOLDER, exist_ok=True)
 
+# 메일 설정 (Gmail 기준 기본값)
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() in ['true', 'on', '1']
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', os.getenv('MAIL_USERNAME'))
+
 db = SQLAlchemy(app)
 csrf = CSRFProtect(app)
 mail = Mail(app)
+from flask_mail import Message
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 # =============================================
@@ -385,7 +394,22 @@ def forgot_password():
         if user:
             token     = serializer.dumps(user.email, salt='pw-reset')
             reset_url = url_for('reset_password', token=token, _external=True)
-            flash(f"재설정 링크 (테스트용): {reset_url}")
+            
+            # 메일 발송 로직
+            try:
+                msg = Message("[PNU CSE 26' BLIND] 비밀번호 재설정 링크",
+                              recipients=[user.email])
+                msg.body = f"""안녕하세요, {user.nickname}님.
+비밀번호를 재설정하려면 아래 링크를 클릭하세요 (10분 내 유효):
+{reset_url}
+
+본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다.
+"""
+                mail.send(msg)
+                flash("입력하신 이메일로 비밀번호 재설정 링크를 발송했습니다.")
+            except Exception as e:
+                app.logger.error(f"Mail send error: {e}")
+                flash("메일 발송 중 오류가 발생했습니다. 관리자에게 문의하세요.")
         else:
             flash("일치하는 정보가 없습니다.")
     return render_template('forgot_password.html')
