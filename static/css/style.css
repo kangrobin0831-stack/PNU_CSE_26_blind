@@ -362,5 +362,52 @@ select.form-select:focus {
         grid-template-columns: 1fr 2fr;
         gap: 10px !important;
         margin-top: 1rem;
+    /* 네비게이션 바 모바일 드롭다운 디자인 개선 */
+    .navbar-collapse {
+        background: linear-gradient(180deg, var(--dept-green-dark) 0%, rgba(18, 65, 40, 0.98) 100%);
+        margin: 10px -16px 0 -16px;
+        padding: 20px !important;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .navbar-nav {
+        padding: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* 가로 중앙 정렬 */
+    }
+
+    .navbar-nav .nav-item {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 12px !important; /* 버튼 간격 확보 */
+        margin-right: 0 !important; /* 기존 margin-right 제거 */
+    }
+
+    .navbar-nav .nav-item:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    /* 환영 인사말 스타일 */
+    .nav-item.d-flex.align-items-center {
+        justify-content: center !important;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 15px !important;
+    }
+
+    /* 드롭다운 내 버튼 통일 */
+    .navbar-nav .btn {
+        width: 100% !important; /* 가로 너비 100% 통일 */
+        padding: 0.8rem !important;
+        font-size: 1rem !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255,255,255,0.2) !important;
     }
 }
