@@ -53,7 +53,7 @@ app.config['SESSION_COOKIE_SECURE'] = os.environ.get('RENDER', 'False').lower() 
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
-    default_limits=["2000 per day", "500 per hour"],
+    default_limits=["10000 per hour", "500 per minute"],
     storage_uri="memory://",
     strategy="fixed-window",
 )
@@ -323,7 +323,7 @@ def require_login():
 # =============================================
 
 @app.route('/signup', methods=['GET', 'POST'])
-@limiter.limit("20 per hour") # 회원가입 시도 제한 완화
+@limiter.limit("100 per hour") # 회원가입 제한 대폭 완화
 def signup():
     if request.method == 'POST':
         username   = request.form.get('username', '').strip()
@@ -423,7 +423,7 @@ def verify():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("30 per minute") # 로그인 시도 제한 완화
+@limiter.limit("100 per minute") # 로그인 제한 대폭 완화
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
