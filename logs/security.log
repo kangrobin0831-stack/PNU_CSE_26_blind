@@ -1,0 +1,2 @@
+2026-04-28 17:11:54,559 INFO: Security logging started [in C:\Users\kangr\OneDrive\Desktop\혼자 만들기\app.py:36]
+2026-04-28 17:11:54,561 WARNING: SECRET_KEY 환경 변수가 설정되지 않았습니다! 기본 키를 사용합니다. [in C:\Users\kangr\OneDrive\Desktop\혼자 만들기\app.py:41]
