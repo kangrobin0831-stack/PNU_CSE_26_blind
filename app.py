@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import func
+from sqlalchemy import func, text
 from flask import Flask, render_template, request, redirect, url_for, flash, session, abort, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
@@ -128,7 +128,30 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME')
 
 db = SQLAlchemy(app)
+
+# [보안/데이터] 데이터베이스 자동 마이그레이션 (스키마 업데이트)
+def init_db_schema():
+    with app.app_context():
+        # 1. Post 테이블에 is_highlighted 컬럼이 없는 경우 추가
+        try:
+            # SQLite와 PostgreSQL(Neon) 모두에서 작동하도록 시도
+            db.session.execute(text("ALTER TABLE post ADD COLUMN is_highlighted BOOLEAN DEFAULT FALSE"))
+            db.session.commit()
+            app.logger.info("Post 테이블에 is_highlighted 컬럼을 추가했습니다.")
+        except Exception as e:
+            db.session.rollback()
+            # 이미 컬럼이 있는 경우 발생하는 에러는 무시
+            if "already exists" in str(e).lower() or "duplicate column" in str(e).lower():
+                pass
+            else:
+                app.logger.warning(f"DB 컬럼 추가 중 알림(무시가능): {e}")
+
+        # 2. 새로운 테이블들 생성
+        db.create_all()
+        app.logger.info("데이터베이스 테이블 확인 및 생성 완료.")
+
 csrf = CSRFProtect(app)
+init_db_schema() # 앱 로드 시 즉시 DB 스키마 체크 및 업데이트
 mail = Mail(app)
 from flask_mail import Message
 serializer = URLSafeTimedSerializer(app.secret_key)
