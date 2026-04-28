@@ -118,11 +118,13 @@
         {% for post in posts %}
         <div class="col-12">
             <a href="{{ url_for('view', post_id=post.id) }}" class="text-decoration-none">
-                <div class="card card-hover p-4 border-0 h-100 {% if post.is_notice %}bg-light border-start border-4 border-danger{% endif %}" {% if post.is_notice %}style="border-left-width: 6px !important;"{% endif %}>
+                <div class="card card-hover p-4 border-0 h-100 {% if post.is_notice %}bg-light border-start border-4 border-danger{% elif post.is_highlighted %}bg-white border-start border-4 border-primary{% endif %}" {% if post.is_notice or post.is_highlighted %}style="border-left-width: 6px !important;"{% endif %}>
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                             {% if post.is_notice %}
                             <span class="badge bg-danger mb-2">공지</span>
+                            {% elif post.is_highlighted %}
+                            <span class="badge bg-primary mb-2"><i class="fa-solid fa-star me-1"></i>강조</span>
                             {% else %}
                             <span class="category-badge bg-{{ post.category | replace('/', '-') }} mb-2 d-inline-block">{{ post.category }}</span>
                             {% endif %}

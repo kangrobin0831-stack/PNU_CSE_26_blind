@@ -206,6 +206,7 @@ class Post(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     is_notice = db.Column(db.Boolean, default=False, nullable=False)
+    is_highlighted = db.Column(db.Boolean, default=False, nullable=False)
     recommend_count = db.Column(db.Integer, default=0, nullable=False)
     report_count = db.Column(db.Integer, default=0, nullable=False)
     image_path = db.Column(db.String(256), nullable=True)  # 게시글 첨부 이미지
@@ -606,11 +607,11 @@ def index():
                          (Post.content.contains(search_query)))
 
     if sort_option == 'likes':
-        q = q.order_by(Post.is_notice.desc(), Post.recommend_count.desc(), Post.created_at.desc())
+        q = q.order_by(Post.is_notice.desc(), Post.is_highlighted.desc(), Post.recommend_count.desc(), Post.created_at.desc())
     elif sort_option == 'comments':
-        q = q.outerjoin(Comment).group_by(Post.id).order_by(Post.is_notice.desc(), func.count(Comment.id).desc(), Post.created_at.desc())
+        q = q.outerjoin(Comment).group_by(Post.id).order_by(Post.is_notice.desc(), Post.is_highlighted.desc(), func.count(Comment.id).desc(), Post.created_at.desc())
     else: # latest
-        q = q.order_by(Post.is_notice.desc(), Post.created_at.desc())
+        q = q.order_by(Post.is_notice.desc(), Post.is_highlighted.desc(), Post.created_at.desc())
 
     per_page = 10
     pagination = q.paginate(page=page, per_page=per_page, error_out=False)
@@ -983,6 +984,17 @@ def admin_reset_comment_report(comment_id):
     db.session.commit()
     flash("댓글 신고를 초기화했습니다.")
     return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/post/<int:post_id>/toggle_highlight', methods=['POST'])
+def admin_toggle_highlight(post_id):
+    if not is_admin(): abort(403)
+    post = db.get_or_404(Post, post_id)
+    post.is_highlighted = not post.is_highlighted
+    db.session.commit()
+    status = "강조됨" if post.is_highlighted else "강조 취소됨"
+    flash(f"게시글이 {status} 상태로 변경되었습니다.")
+    return redirect(request.referrer or url_for('view', post_id=post.id))
 
 
 # =============================================
