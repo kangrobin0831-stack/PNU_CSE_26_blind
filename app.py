@@ -210,6 +210,7 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(KST))
     comments = db.relationship('Comment', backref='post', cascade='all, delete-orphan',
                                order_by='Comment.created_at', lazy=True)
+    poll = db.relationship('Poll', backref='post', uselist=False, cascade='all, delete-orphan')
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -232,6 +233,25 @@ class Report(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=True)
     comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True)
+
+class Poll(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    options = db.relationship('PollOption', backref='poll', cascade='all, delete-orphan', lazy=True)
+    votes = db.relationship('PollVote', backref='poll', cascade='all, delete-orphan', lazy=True)
+
+class PollOption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    poll_id = db.Column(db.Integer, db.ForeignKey('poll.id'), nullable=False)
+    option_text = db.Column(db.String(100), nullable=False)
+    votes = db.relationship('PollVote', backref='option', cascade='all, delete-orphan', lazy=True)
+
+class PollVote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    poll_id = db.Column(db.Integer, db.ForeignKey('poll.id'), nullable=False)
+    option_id = db.Column(db.Integer, db.ForeignKey('poll_option.id'), nullable=False)
 
 if __name__ == '__main__':
     # Render가 지정해주는 포트를 사용하고, 모든 외부 접속(0.0.0.0)을 허용합니다.
@@ -622,14 +642,30 @@ def write():
                 flash("이미지 업로드 중 오류가 발생했습니다.")
                 return redirect(url_for('write'))
 
-        db.session.add(Post(
+        new_post = Post(
             user_id=session['user_id'],
             category=category,
             title=request.form.get('title', '').strip(),
             content=request.form.get('content', '').strip(),
             is_notice=(category == '공지사항'),
             image_path=saved_image_url,
-        ))
+        )
+        db.session.add(new_post)
+        db.session.flush()
+
+        # 투표(Poll) 생성 로직
+        poll_title = request.form.get('poll_title', '').strip()
+        poll_options = request.form.getlist('poll_options')
+        # 필터링: 빈 항목 제외
+        poll_options = [opt.strip() for opt in poll_options if opt.strip()]
+        
+        if poll_title and len(poll_options) >= 2:
+            new_poll = Poll(post_id=new_post.id, title=poll_title)
+            db.session.add(new_poll)
+            db.session.flush()
+            for opt_text in poll_options:
+                db.session.add(PollOption(poll_id=new_poll.id, option_text=opt_text))
+
         db.session.commit()
         return redirect(url_for('index'))
     return render_template('write.html', is_admin=is_admin())
@@ -638,6 +674,15 @@ def write():
 @app.route('/post/<int:post_id>')
 def view(post_id):
     post = db.get_or_404(Post, post_id)
+    uid = session.get('user_id')
+    
+    user_voted_option_id = None
+    if uid and post.poll:
+        vote = PollVote.query.filter_by(user_id=uid, poll_id=post.poll.id).first()
+        if vote:
+            user_voted_option_id = vote.option_id
+
+    all_comments = []
     all_comments = []
     for c in post.comments:
         all_comments.append(c)
@@ -657,7 +702,28 @@ def view(post_id):
         uid and Recommendation.query.filter_by(user_id=uid, post_id=post_id).first()
     )
     return render_template('view.html', post=post, comment_map=comment_map,
-                           user_recommended=user_recommended)
+                           user_recommended=user_recommended,
+                           user_voted_option_id=user_voted_option_id)
+
+@app.route('/poll/<int:poll_id>/vote', methods=['POST'])
+def vote_poll(poll_id):
+    uid = session.get('user_id')
+    if not uid:
+        return jsonify({'success': False, 'message': '로그인이 필요합니다.'}), 401
+    
+    poll = db.get_or_404(Poll, poll_id)
+    option_id = request.form.get('option_id')
+    
+    if not option_id:
+        return jsonify({'success': False, 'message': '항목을 선택해 주세요.'}), 400
+    
+    existing_vote = PollVote.query.filter_by(user_id=uid, poll_id=poll_id).first()
+    if existing_vote:
+        return jsonify({'success': False, 'message': '이미 투표하셨습니다.'}), 400
+    
+    db.session.add(PollVote(user_id=uid, poll_id=poll_id, option_id=option_id))
+    db.session.commit()
+    return jsonify({'success': True})
 
 
 @app.route('/post/<int:post_id>/edit', methods=['GET', 'POST'])

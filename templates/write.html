@@ -55,6 +55,32 @@
                     </div>
                 </div>
 
+                <!-- 투표 추가 (선택 사항) -->
+                <div class="mb-4">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mb-3" onclick="togglePollSection()">
+                        <i class="fa-solid fa-square-poll-vertical me-1"></i>투표 추가하기
+                    </button>
+                    
+                    <div id="poll-section" class="d-none p-4 rounded-4 bg-light border">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">투표 제목</label>
+                            <input type="text" name="poll_title" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="예: 오늘 점심 메뉴 투표">
+                        </div>
+                        <div id="poll-options-container">
+                            <label class="form-label fw-bold">투표 항목</label>
+                            <div class="input-group mb-2">
+                                <input type="text" name="poll_options" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="항목 1">
+                            </div>
+                            <div class="input-group mb-2">
+                                <input type="text" name="poll_options" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="항목 2">
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-decoration-none fw-bold" onclick="addPollOption()">
+                            <i class="fa-solid fa-plus me-1"></i>항목 추가
+                        </button>
+                    </div>
+                </div>
+
                 <div class="d-flex gap-2 mt-5">
                     <a href="{{ url_for('index') }}" class="btn btn-light flex-fill py-3 rounded-pill fw-bold">취소</a>
                     <button type="submit" class="btn btn-primary flex-fill py-3 rounded-pill fw-bold shadow-sm">작성 완료</button>
@@ -96,6 +122,27 @@ function clearImage() {
     imgInput.value = '';
     previewImg.src = '#';
     previewWrap.classList.add('d-none');
+}
+
+function togglePollSection() {
+    const pollSection = document.getElementById('poll-section');
+    pollSection.classList.toggle('d-none');
+}
+
+function addPollOption() {
+    const container = document.getElementById('poll-options-container');
+    const optionCount = container.querySelectorAll('input').length + 1;
+    if (optionCount > 10) {
+        alert('투표 항목은 최대 10개까지 가능합니다.');
+        return;
+    }
+    const div = document.createElement('div');
+    div.className = 'input-group mb-2';
+    div.innerHTML = `
+        <input type="text" name="poll_options" class="form-control border-0 shadow-sm p-3 rounded-3" placeholder="항목 ${optionCount}">
+        <button type="button" class="btn btn-outline-danger" onclick="this.parentElement.remove()"><i class="fa-solid fa-minus"></i></button>
+    `;
+    container.appendChild(div);
 }
 </script>
 {% endblock %}

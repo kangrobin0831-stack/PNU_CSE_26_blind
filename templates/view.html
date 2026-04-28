@@ -46,6 +46,49 @@
                          style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
                 </div>
                 {% endif %}
+
+                <!-- 투표 섹션 -->
+                {% if post.poll %}
+                <div class="mt-5 p-4 rounded-4 border bg-light shadow-inner poll-container">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-square-poll-vertical text-primary me-2"></i>{{ post.poll.title }}</h5>
+                    
+                    {% if user_voted_option_id %}
+                        <!-- 투표 결과 보기 -->
+                        {% set total_votes = post.poll.votes|length %}
+                        <div class="poll-results">
+                            {% for option in post.poll.options %}
+                                {% set opt_votes = option.votes|length %}
+                                {% set percent = (opt_votes / total_votes * 100)|round(1) if total_votes > 0 else 0 %}
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1 small fw-bold">
+                                        <span>{{ option.option_text }} {% if option.id == user_voted_option_id %}<span class="badge bg-primary ms-1">내 투표</span>{% endif %}</span>
+                                        <span class="text-primary">{{ percent }}% ({{ opt_votes }}표)</span>
+                                    </div>
+                                    <div class="progress rounded-pill" style="height: 12px; background-color: #e9ecef;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated {% if option.id == user_voted_option_id %}bg-primary{% else %}bg-secondary opacity-50{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ percent }}%;"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            <p class="text-muted small text-end mt-2 mb-0">총 {{ total_votes }}명 참여</p>
+                        </div>
+                    {% else %}
+                        <!-- 투표 참여하기 -->
+                        <form id="poll-vote-form" data-poll-id="{{ post.poll.id }}">
+                            {% for option in post.poll.options %}
+                                <div class="form-check mb-3 p-0">
+                                    <input class="btn-check" type="radio" name="poll_option" id="poll-opt-{{ option.id }}" value="{{ option.id }}">
+                                    <label class="btn btn-outline-primary w-100 text-start py-3 px-4 rounded-3 fw-bold" for="poll-opt-{{ option.id }}">
+                                        {{ option.option_text }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            <button type="button" onclick="submitPollVote()" class="btn btn-primary w-100 py-3 rounded-pill fw-bold mt-2 shadow-sm">투표하기</button>
+                        </form>
+                    {% endif %}
+                </div>
+                {% endif %}
                 {% endif %}
 
                 <!-- 추천 버튼 영역 -->
@@ -269,5 +312,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+function submitPollVote() {
+    const form = document.getElementById('poll-vote-form');
+    const pollId = form.getAttribute('data-poll-id');
+    const selectedOption = form.querySelector('input[name="poll_option"]:checked');
+    const csrfToken = "{{ csrf_token() }}";
+
+    if (!selectedOption) {
+        alert('항목을 선택해 주세요.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('option_id', selectedOption.value);
+    formData.append('csrf_token', csrfToken);
+
+    fetch('/poll/' + pollId + '/vote', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || '투표 처리 중 오류가 발생했습니다.');
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('서버와 통신 중 오류가 발생했습니다.');
+    });
+}
 </script>
 {% endblock %}
