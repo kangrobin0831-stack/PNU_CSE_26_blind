@@ -695,21 +695,17 @@ def edit_post(post_id):
 def delete_post(post_id):
     post = db.get_or_404(Post, post_id)
     if post.user_id == session.get('user_id') or is_admin():
-        # 이미지 파기: 파일 오류가 나도 DB 삭제는 반드시 실행
-        if post.image_path:
-            try:
-                img_path = os.path.join(POST_IMAGE_FOLDER, post.image_path)
-                if os.path.exists(img_path):
-                    os.remove(img_path)
-            except Exception as e:
-                app.logger.warning(f"[delete_post] image remove failed (ignored): {e}")
-        # 이미지 파기 성공/실패와 무관하게 반드시 DB에서 삭제
         try:
             db.session.delete(post)
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             app.logger.error(f"[delete_post] DB delete failed: {e}")
+    
+    # 리다이렉트: 관리자 대시보드에서 왔으면 대시보드로, 아니면 메인으로
+    referrer = request.referrer or ''
+    if 'admin' in referrer:
+        return redirect(url_for('admin_dashboard'))
     return redirect(url_for('index'))
 
 
@@ -736,6 +732,11 @@ def delete_comment(comment_id):
     if comment.user_id == session.get('user_id') or is_admin():
         db.session.delete(comment)
         db.session.commit()
+    
+    # 리다이렉트: 관리자 대시보드에서 왔으면 대시보드로, 아니면 게시글 보기로
+    referrer = request.referrer or ''
+    if 'admin' in referrer:
+        return redirect(url_for('admin_dashboard'))
     return redirect(url_for('view', post_id=pid))
 
 # =============================================

@@ -128,11 +128,11 @@
                                 <td><span class="text-danger fw-bold">{{ post.report_count }}</span></td>
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <form action="{{ url_for('admin_reset_post_report', post_id=post.id) }}" method="POST">
+                                        <form action="{{ url_for('admin_reset_post_report', post_id=post.id) }}" method="POST" onsubmit="return confirm('이 게시글의 신고 횟수를 초기화하시겠습니까?')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-outline-success">초기화</button>
                                         </form>
-                                        <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
+                                        <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" onsubmit="return confirm('정말로 이 게시글을 삭제하시겠습니까?')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-danger">삭제</button>
                                         </form>
@@ -171,11 +171,11 @@
                                 <td><span class="text-danger fw-bold">{{ comment.report_count }}</span></td>
                                 <td>
                                     <div class="d-flex gap-2">
-                                        <form action="{{ url_for('admin_reset_comment_report', comment_id=comment.id) }}" method="POST">
+                                        <form action="{{ url_for('admin_reset_comment_report', comment_id=comment.id) }}" method="POST" onsubmit="return confirm('이 댓글의 신고 횟수를 초기화하시겠습니까?')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-outline-success">초기화</button>
                                         </form>
-                                        <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST">
+                                        <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST" onsubmit="return confirm('정말로 이 댓글을 삭제하시겠습니까?')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-sm btn-danger">삭제</button>
                                         </form>
