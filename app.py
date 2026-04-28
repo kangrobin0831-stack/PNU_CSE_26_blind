@@ -49,11 +49,13 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = os.environ.get('RENDER', 'False').lower() == 'true'
 
 # [보안] 속도 제한 (Rate Limiting) 초기화
+# Render 등 프록시 환경에서는 X-Forwarded-For 헤더를 사용해야 실제 사용자 IP를 구분할 수 있습니다.
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=["2000 per day", "500 per hour"],
     storage_uri="memory://",
+    strategy="fixed-window",
 )
 
 # [보안] 보안 헤더 (CSP 등) 설정
@@ -321,7 +323,7 @@ def require_login():
 # =============================================
 
 @app.route('/signup', methods=['GET', 'POST'])
-@limiter.limit("3 per hour") # 회원가입 시도 제한
+@limiter.limit("20 per hour") # 회원가입 시도 제한 완화
 def signup():
     if request.method == 'POST':
         username   = request.form.get('username', '').strip()
@@ -421,7 +423,7 @@ def verify():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-@limiter.limit("10 per minute") # 로그인 시도 제한
+@limiter.limit("30 per minute") # 로그인 시도 제한 완화
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -529,7 +531,7 @@ def find_id():
 
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
-@limiter.limit("5 per hour") # 비밀번호 찾기 시도 제한
+@limiter.limit("10 per hour") # 비밀번호 찾기 시도 제한 완화
 def forgot_password():
     if request.method == 'POST':
         user = User.query.filter_by(
