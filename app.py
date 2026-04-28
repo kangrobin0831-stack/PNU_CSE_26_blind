@@ -12,14 +12,72 @@ from itsdangerous import URLSafeTimedSerializer
 from dotenv import load_dotenv
 import requests
 import base64
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_talisman import Talisman
+import logging
+from logging.handlers import RotatingFileHandler
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'pnu_blind26_secret_key')
+
+# [보안] 로깅 설정 (비정상적인 접근 및 오류 기록)
+if not app.debug:
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/security.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('Security logging started')
+
+# [보안] 시크릿 키 경고 및 설정
+secret_key = os.getenv('SECRET_KEY')
+if not secret_key:
+    app.logger.warning("SECRET_KEY 환경 변수가 설정되지 않았습니다! 기본 키를 사용합니다.")
+    secret_key = 'pnu_blind26_fallback_secret_key'
+app.secret_key = secret_key
+
+# [보안] 세션 쿠키 설정
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['SESSION_COOKIE_SECURE'] = False
+# 배포 환경(HTTPS)에서만 Secure 쿠키 사용
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('RENDER', 'False').lower() == 'true'
+
+# [보안] 속도 제한 (Rate Limiting) 초기화
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
+
+# [보안] 보안 헤더 (CSP 등) 설정
+csp = {
+    'default-src': [
+        '\'self\'',
+        'https://cdn.jsdelivr.net',
+        'https://fonts.googleapis.com',
+        'https://fonts.gstatic.com',
+        'https://i.ibb.co',
+    ],
+    'script-src': [
+        '\'self\'',
+        'https://cdn.jsdelivr.net',
+        '\'unsafe-inline\'',
+    ],
+    'style-src': [
+        '\'self\'',
+        'https://cdn.jsdelivr.net',
+        'https://fonts.googleapis.com',
+        '\'unsafe-inline\'',
+    ],
+}
+talisman = Talisman(app, content_security_policy=csp, force_https=(os.environ.get('RENDER', 'False').lower() == 'true'))
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 if db_url.startswith('postgres://'):
     db_url = db_url.replace('postgres://', 'postgresql://', 1)
@@ -228,6 +286,7 @@ def require_login():
 # =============================================
 
 @app.route('/signup', methods=['GET', 'POST'])
+@limiter.limit("3 per hour") # 회원가입 시도 제한
 def signup():
     if request.method == 'POST':
         username   = request.form.get('username', '').strip()
@@ -327,6 +386,7 @@ def verify():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute") # 로그인 시도 제한
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -344,11 +404,14 @@ def login():
 
         if not check_password_hash(user.password_hash, password):
             user.login_attempts = (user.login_attempts or 0) + 1
+            app.logger.warning(f"로그인 실패: {username} (IP: {request.remote_addr}, 시도 횟수: {user.login_attempts})")
+            
             if user.login_attempts >= 7:
                 user.lock_until = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=30)
                 flash("비밀번호를 7회 틀려 30분간 계정이 잠깁니다.")
             else:
                 flash(f"비밀번호가 틀렸습니다. ({user.login_attempts}/7회)")
+            
             db.session.commit()
             return render_template('login.html')
 
@@ -431,6 +494,7 @@ def find_id():
 
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
+@limiter.limit("5 per hour") # 비밀번호 찾기 시도 제한
 def forgot_password():
     if request.method == 'POST':
         user = User.query.filter_by(
@@ -718,6 +782,7 @@ def report_comment(comment_id):
 # =============================================
 
 @app.route('/admin_pnu_hidden_26')
+@limiter.limit("20 per minute") # 관리자 페이지 접근 제한
 def admin_dashboard():
     if not is_admin(): abort(403)
     all_users         = User.query.all()
